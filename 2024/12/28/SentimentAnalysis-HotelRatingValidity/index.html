@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head prefix="og: https://ogp.me/ns#">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  
+  <title>用BERT文本情感分析实现酒店评分有效性调整-自然语言处理期末作业 - CGuitar</title>
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    <link rel='manifest' href='/manifest.json'>
+  
+
+  
+  
+  
+  <meta property="og:title" content="用BERT文本情感分析实现酒店评分有效性调整-自然语言处理期末作业 - CGuitar" />
+  
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:url" content="http://cguitar.github.io/2024/12/28/SentimentAnalysis-HotelRatingValidity/index.html" />
+  
+  <meta property="og:image" content="/favicon.png" />
+  
+  <meta property="og:article:published_time" content="2024-12-28T05:41:50.418Z" />
+  
+  <meta property="og:article:author" content="CGuitar" />
+  
+  
+
+  
+<link rel="stylesheet" href="/css/var.css">
+
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+<link rel="stylesheet" href="/css/typography.css">
+
+  
+<link rel="stylesheet" href="/css/code-highlighting.css">
+
+  
+<link rel="stylesheet" href="/css/components.css">
+
+  
+<link rel="stylesheet" href="/css/nav.css">
+
+  
+<link rel="stylesheet" href="/css/paginator.css">
+
+  
+<link rel="stylesheet" href="/css/footer.css">
+
+  
+<link rel="stylesheet" href="/css/post-list.css">
+
+  
+  
+  
+<link rel="stylesheet" href="/css/toc.css">
+
+  
+  
+  
+  
+  
+<link rel="stylesheet" href="/css/post.css">
+
+  
+  
+  
+  
+  
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+    <body
+        data-color-scheme="auto"
+        data-uppercase-categories="true"
+        
+        data-config-root="/"
+        
+        data-toc="true"
+        data-toc-max-depth="2"
+        
+        
+    >
+        <nav id="theme-nav">
+    <div class="inner">
+        <a class="title" href="/">Blog</a>
+        <div class="nav-arrow"></div>
+        <div class="nav-items">
+            <a class="nav-item nav-item-home" href="/">主页</a>
+            
+            
+            <a class="nav-item" href="/archives">个人资料</a>
+            
+            
+            
+            <a class="nav-item" href="/projects">项目</a>
+            
+            
+            
+            <a class="nav-item" href="/love">捏头囡囡的小屋</a>
+            
+            
+            
+            <a class="nav-item nav-item-github nav-item-icon" href="https://github.com/CGuitar" target="_blank" aria-label="GitHub">&nbsp;</a>
+            
+            
+            
+            <a class="nav-item" target="_blank" rel="noopener" href="https://blog.csdn.net/PJ212">CSDN</a>
+            
+            
+            
+            <a class="nav-item nav-item-search nav-item-icon" href="/search" target="_blank" aria-label="Search">&nbsp;</a>
+            
+            
+        </div>
+    </div>
+</nav>
+        
+<article class="post">
+    <div class="meta">
+        
+
+        
+        <div class="date" id="date">
+            <span>December</span>
+            <span>28,</span>
+            <span>2024</span>
+        </div>
+        
+
+        <h1 class="title">用BERT文本情感分析实现酒店评分有效性调整-自然语言处理期末作业</h1>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="content">
+        <h1 id="原题背景与要求"><a href="#原题背景与要求" class="headerlink" title="原题背景与要求"></a>原题背景与要求</h1><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>由于评论文本自身存在差异，可能会出现<strong>内容不相关</strong>、<strong>简单复制修改</strong>和<strong>无有效内容</strong>等现象，这会妨碍游客从网络评价中获得有价值的信息，也为各网络平台的运营工作带来了挑战。探其根本，自动地评价文本有效性，有助于提升景区和酒店的服务质量，将游客的需求落到实处，同时有利于旅游平台的在线运营。因此，本文融合五项指标，从<strong>相关性</strong>、<strong>完整性</strong>、<strong>可解释性</strong>、<strong>情感性</strong>、<strong>时效性</strong>等角度，自动地评价文本的有效性，并创新性地进行了高效评论排序。</p>
+<h2 id="要求"><a href="#要求" class="headerlink" title="要求"></a>要求</h2><p>对于评论中的文本有效性进行分析，主要是从三方面进行分析。<strong>第一点，有的评论可能是由其他评论简单复制修改后的垃圾评论</strong>；<strong>第二点，有的评论的内容可能与店家无关，是打广告之类的无关内容</strong>；<strong>第三点，有的评论虽然主题与店家相关，但是店家的介绍之类的，没有对店家进行评价</strong>。我们建立的模型主要从这三方面对于评论进行筛选。</p>
+<hr>
+<h1 id="新的观点与实现大纲"><a href="#新的观点与实现大纲" class="headerlink" title="新的观点与实现大纲"></a>新的观点与实现大纲</h1><ul>
+<li>在原题要求中的第二点中，因为用户的评论数据来自于各大旅游平台，而多数平台会自动删除过滤掉一些无效信息以及广告，因此对无关内容的筛选，实际意义并不高。</li>
+<li>在对大量旅游评论的观察统计后，发现在评论区中，许多用户评论很好，但打分很低；或者评论很差，打分很高。也有不少复制粘贴的评论以及无意义的评论。</li>
+</ul>
+<p><strong>综上所述，我重新调整了需求，以符合现实意义。以下是项目的实现大纲：</strong></p>
+<ol>
+<li>爬取携程网上日本东京的8家平价酒店各200条评论，下面是字段名<ul>
+<li>酒店名称</li>
+<li>酒店总体评分</li>
+<li>入住时间</li>
+<li>客户评分</li>
+<li>评价内容</li>
+</ul>
+</li>
+<li>爬取后的Excel转csv文件</li>
+<li>删除2年前的评论</li>
+<li>删除字数小于5的评论（不包括标点符号）</li>
+<li>使用余弦相似度，用TF-IDF 将评论转换为向量，删除重复度高的评论</li>
+<li><em>对所有评论使用pypinyin+Pinyin2Hanzi实现“中文加密”破解</em></li>
+<li>使用BERT模型，实现文本情感分析</li>
+<li>通过情感分析微调客户评分</li>
+<li>重新计算各酒店总体评分</li>
+</ol>
+<h1 id="项目架构"><a href="#项目架构" class="headerlink" title="项目架构"></a>项目架构</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── ./bert</span><br><span class="line">│   ├── ./bert/checkpoints</span><br><span class="line">│   ├── ./bert/data</span><br><span class="line">│   │   ├── ./bert/data/test.txt</span><br><span class="line">│   │   ├── ./data/data/train.txt</span><br><span class="line">│   ├── ./bert/config.py</span><br><span class="line">│   ├── ./bert/exc2csv.py</span><br><span class="line">│   ├── ./bert/postData.py</span><br><span class="line">│   ├── ./bert/preData.py</span><br><span class="line">│   ├── ./bert/process.py</span><br><span class="line">│   ├── ./bert/test.py</span><br><span class="line">│   ├── ./bert/train.py</span><br><span class="line">│   ├── ./bert/TF-IDF.py</span><br><span class="line">│   ├── ./bert/requirements.txt</span><br><span class="line">│   └── ./bert/decrypt.py</span><br><span class="line">————————————————</span><br></pre></td></tr></table></figure>
+<h2 id="文件解释："><a href="#文件解释：" class="headerlink" title="文件解释："></a>文件解释：</h2><p>exc2csv.py，preData.py，TF-IDF.py，decrypt.py用于数据预处理<br>train.py，test.py，process.py，config.py，data，checkpoints用于BERT文本情感分析<br>postData.py实现最终数据处理</p>
+<hr>
+<h1 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h1><h2 id="一、酒店网评爬取"><a href="#一、酒店网评爬取" class="headerlink" title="一、酒店网评爬取"></a>一、酒店网评爬取</h2><p>具体过程略，这里我选择了携程上日本东京300-500的平价酒店，<br>爬取了{酒店名称，酒店总体评分，入住时间，客户评分，评价内容}五个部分</p>
+<h2 id="二、Excel转csv"><a href="#二、Excel转csv" class="headerlink" title="二、Excel转csv"></a>二、Excel转csv</h2><p>方便后续处理</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pip install -r requirements.txt</span><br><span class="line">python exc2csv.py</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、删除2年前的评论以及字数小于5的评论（不包括标点符号）"><a href="#三、删除2年前的评论以及字数小于5的评论（不包括标点符号）" class="headerlink" title="三、删除2年前的评论以及字数小于5的评论（不包括标点符号）"></a>三、删除2年前的评论以及字数小于5的评论（不包括标点符号）</h2><p>2年前的评论参考价值较低，字数小于5的评论多数为随意评论</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python preData.py</span><br></pre></td></tr></table></figure>
+
+<h2 id="四、使用余弦相似度，用TF-IDF-将评论转换为向量，删除重复度高的评论"><a href="#四、使用余弦相似度，用TF-IDF-将评论转换为向量，删除重复度高的评论" class="headerlink" title="四、使用余弦相似度，用TF-IDF 将评论转换为向量，删除重复度高的评论"></a>四、使用余弦相似度，用TF-IDF 将评论转换为向量，删除重复度高的评论</h2><p>重复度高的评论多数为复制粘贴，或者套用模板</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python TF-IDF.py</span><br></pre></td></tr></table></figure>
+
+<h2 id="五、对所有评论使用pypinyin-Pinyin2Hanzi实现“中文加密”破解"><a href="#五、对所有评论使用pypinyin-Pinyin2Hanzi实现“中文加密”破解" class="headerlink" title="* 五、对所有评论使用pypinyin+Pinyin2Hanzi实现“中文加密”破解"></a>* 五、对所有评论使用pypinyin+Pinyin2Hanzi实现“中文加密”破解</h2><p>什么是“中文加密”: <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1MjsLeyEBD?vd_source=56fa190c2c2f18f1c5a6a89188ec1dc1">bilibili-中文加密评论：西班牙餐厅避雷指南！</a><br>因为中文加密多数为容易让外国人以及AI曲解的谐音字。因此想到可以试着重构一下，让汉字变回拼音再变回汉字。</p>
+<blockquote>
+<p>例如：<br>喃吃的饭，服务是完全美诱的，千万补药来！ –&gt;<br>nan chi de fan, fu wu shi wan quan mei you de, qian wan bu yao lai！ –&gt;<br>难吃的饭，服务是完全没有的，千万不要来！</p>
+</blockquote>
+<p>但因为Pinyin2Hanzi性能较差，没有找到其他合适的拼音转汉字方法，因此实际效果并不理想</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python decrypt.py</span><br></pre></td></tr></table></figure>
+
+<h2 id="六、通过BERT文本情感分析微调客户评分"><a href="#六、通过BERT文本情感分析微调客户评分" class="headerlink" title="六、通过BERT文本情感分析微调客户评分"></a>六、通过BERT文本情感分析微调客户评分</h2><p>2年前的评论参考价值较低，字数小于5的评论多数为随意评论</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">调用config.py中的参数开始训练data中内容，在checkpoints文件夹中生成模型文件</span></span><br><span class="line">python train.py</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">读取预处理后的csv文件，实现文本情感的三分类</span></span><br><span class="line">python test.py</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">通过BERT模型得出的文本情感，对客户评分字段进行微调，并更新酒店总体评分</span></span><br><span class="line">python postData.py</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="七、部分工作过程"><a href="#七、部分工作过程" class="headerlink" title="七、部分工作过程"></a>七、部分工作过程</h2><ul>
+<li>预处理、后处理、BERT的test在本机上实现，模型训练在云服务器上进行</li>
+</ul>
+<p><img src="https://github.com/user-attachments/assets/acccfd31-4357-491b-89a0-331ce7b9733d" alt="BERT在AutoDL上的训练"><br><img src="https://github.com/user-attachments/assets/333ef670-1b3b-4f25-b319-cfcd5915b4c6" alt="BERT情感分析测试"><br><img src="https://github.com/user-attachments/assets/26f029e4-b071-4269-b519-fd6745ec8d0e" alt="重复度高的评论的查找与删除"><br><img src="https://github.com/user-attachments/assets/af56e927-501b-4f4e-886b-5b1d83f3726e" alt="loss曲线"><br><img src="https://github.com/user-attachments/assets/7e59bcde-7f38-4eb2-a92d-c1bccfa68113" alt="F1曲线"><br><img src="https://github.com/user-attachments/assets/3d4c78de-4024-47d8-b1e6-a1e63b334ba0" alt="最终结果"></p>
+<h2 id="八、参考代码"><a href="#八、参考代码" class="headerlink" title="八、参考代码"></a>八、参考代码</h2><p>GitHub：<a target="_blank" rel="noopener" href="https://github.com/yaokui2018/SentimentAnalysis?tab=readme-ov-file">中文情感分类 | 基于三分类的文本情感分析</a></p>
+<ul>
+<li>参考了他使用BERT文本情感分析的训练方法</li>
+</ul>
+<hr>
+<p>本项目的CSDN：<a target="_blank" rel="noopener" href="https://blog.csdn.net/PJ212/article/details/144570396?spm=1001.2014.3001.5502">用BERT文本情感分析实现酒店评分有效性调整——自然语言处理期末大作业</a></p>
+
+    </div>
+
+    
+    <div class="about">
+        <h1>关于本文</h1>
+        <div class="details">
+            <p>由 CGuitar 撰写, 采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc/4.0">CC BY-NC 4.0</a> 许可协议.</p>
+        </div>
+        
+    </div>
+    
+
+    <div class="container post-prev-next">
+        <a class="next"></a>
+        
+        <a href="/2024/12/28/SeaDronesSee/" class="prev">
+            <div>
+                <div class="text">
+                    <p class="label">上一篇</p>
+                    <h3 class="title">SeaDronesSee数据集在YOLOV8上的部署</>
+                </div>
+            </div>
+        </a>
+        
+    </div>
+
+    
+        
+        
+    
+</article>
+
+        <footer>
+    <div class="inner">
+        <div class="links">
+            
+            <div class="group">
+                <h2 class="title">Blog</h2>
+                
+                <a href="/" class="item">Blog</a>
+                
+                <a href="/archives" class="item">个人资料</a>
+                
+                <a href="/love" class="item">捏头囡囡的小屋</a>
+                
+                <a href="/search" class="item">Search</a>
+                
+                <a href="/projects" class="item">项目</a>
+                
+            </div>
+            
+            <div class="group">
+                <h2 class="title">项目</h2>
+                
+                <a target="_blank" rel="noopener" href="https://github.com/CGuitar/SentimentAnalysis-HotelRatingValidity" class="item">用BERT文本情感分析实现酒店评分有效性调整</a>
+                
+                <a target="_blank" rel="noopener" href="https://github.com/CGuitar/SeaDronesSee-dataset-on-YOLOV8" class="item">SeaDronesSee数据集在YOLOV8上的部署</a>
+                
+            </div>
+            
+            <div class="group">
+                <h2 class="title">关于我</h2>
+                
+                <a target="_blank" rel="noopener" href="https://github.com/CGuitar" class="item">GitHub</a>
+                
+                <a target="_blank" rel="noopener" href="https://blog.csdn.net/PJ212" class="item">CSDN</a>
+                
+                <a href="mailto:2326268900@qq.com" class="item">Email</a>
+                
+            </div>
+            
+        </div>
+        <span>&copy; 2024 CGuitar<br>由 <a href="http://hexo.io/" target="_blank">Hexo</a> 驱动 </span>
+        
+        
+            <br>
+            <div class="color-scheme-toggle" role="radiogroup" id="theme-color-scheme-toggle">
+                <label>
+                    <input type="radio" value="light">
+                    <span>Light</span>
+                </label>
+                <label>
+                    <input type="radio" value="dark">
+                    <span>Dark</span>
+                </label>
+                <label>
+                    <input type="radio" value="auto">
+                    <span>Auto</span>
+                </label>
+            </div>
+        
+    </div>
+</footer>
+
+
+        
+<script src="/js/main.js"></script>
+
+        
+        
+        
+
+        
+        <script src="https://unpkg.com/scrollreveal"></script>
+        <script>
+            window.addEventListener('load', () => {
+                ScrollReveal({ delay: 250, reset: true, easing: 'cubic-bezier(0, 0, 0, 1)' })
+                ScrollReveal().reveal('.post-list-item .cover-img img')
+                ScrollReveal().reveal('.post-list-item, .card, .content p img, .content .block-large img', { distance: '60px', origin: 'bottom', duration: 800 })
+            })
+        </script>
+        
+    </body>
+</html>

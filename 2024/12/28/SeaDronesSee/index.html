@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head prefix="og: https://ogp.me/ns#">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  
+  <title>SeaDronesSee数据集在YOLOV8上的部署 - CGuitar</title>
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    <link rel='manifest' href='/manifest.json'>
+  
+
+  
+  
+  
+  <meta property="og:title" content="SeaDronesSee数据集在YOLOV8上的部署 - CGuitar" />
+  
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:url" content="http://cguitar.github.io/2024/12/28/SeaDronesSee/index.html" />
+  
+  <meta property="og:image" content="/favicon.png" />
+  
+  <meta property="og:article:published_time" content="2024-12-28T05:36:23.801Z" />
+  
+  <meta property="og:article:author" content="CGuitar" />
+  
+  
+
+  
+<link rel="stylesheet" href="/css/var.css">
+
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+<link rel="stylesheet" href="/css/typography.css">
+
+  
+<link rel="stylesheet" href="/css/code-highlighting.css">
+
+  
+<link rel="stylesheet" href="/css/components.css">
+
+  
+<link rel="stylesheet" href="/css/nav.css">
+
+  
+<link rel="stylesheet" href="/css/paginator.css">
+
+  
+<link rel="stylesheet" href="/css/footer.css">
+
+  
+<link rel="stylesheet" href="/css/post-list.css">
+
+  
+  
+  
+<link rel="stylesheet" href="/css/toc.css">
+
+  
+  
+  
+  
+  
+<link rel="stylesheet" href="/css/post.css">
+
+  
+  
+  
+  
+  
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+    <body
+        data-color-scheme="auto"
+        data-uppercase-categories="true"
+        
+        data-config-root="/"
+        
+        data-toc="true"
+        data-toc-max-depth="2"
+        
+        
+    >
+        <nav id="theme-nav">
+    <div class="inner">
+        <a class="title" href="/">Blog</a>
+        <div class="nav-arrow"></div>
+        <div class="nav-items">
+            <a class="nav-item nav-item-home" href="/">主页</a>
+            
+            
+            <a class="nav-item" href="/archives">个人资料</a>
+            
+            
+            
+            <a class="nav-item" href="/projects">项目</a>
+            
+            
+            
+            <a class="nav-item" href="/love">捏头囡囡的小屋</a>
+            
+            
+            
+            <a class="nav-item nav-item-github nav-item-icon" href="https://github.com/CGuitar" target="_blank" aria-label="GitHub">&nbsp;</a>
+            
+            
+            
+            <a class="nav-item" target="_blank" rel="noopener" href="https://blog.csdn.net/PJ212">CSDN</a>
+            
+            
+            
+            <a class="nav-item nav-item-search nav-item-icon" href="/search" target="_blank" aria-label="Search">&nbsp;</a>
+            
+            
+        </div>
+    </div>
+</nav>
+        
+<article class="post">
+    <div class="meta">
+        
+
+        
+        <div class="date" id="date">
+            <span>December</span>
+            <span>28,</span>
+            <span>2024</span>
+        </div>
+        
+
+        <h1 class="title">SeaDronesSee数据集在YOLOV8上的部署</h1>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="content">
+        <h1 id="SeaDronesSee数据集在YOLOV8上的部署"><a href="#SeaDronesSee数据集在YOLOV8上的部署" class="headerlink" title="SeaDronesSee数据集在YOLOV8上的部署"></a>SeaDronesSee数据集在YOLOV8上的部署</h1><p>SeaDronesSee数据集为无人机拍摄的海洋救援相关的数据集。目标框有’ignored’, ‘swimmer’, ‘boat’, ‘jetski’, ‘life_saving_appliances’, ‘buoy’六个类别。以下内容为为实现该数据集在yoloV8上的部署，进行的预处理与运行测试。</p>
+<ul>
+<li>数据来源：<a target="_blank" rel="noopener" href="https://github.com/Ben93kie/SeaDronesSee/tree/main">SeaDronesSee</a></li>
+<li>CSDN上的文章：<a target="_blank" rel="noopener" href="https://blog.csdn.net/PJ212/article/details/135344900">SeaDronesSee数据集在YOLOV8上的部署</a></li>
+</ul>
+<h2 id="一、数据预处理"><a href="#一、数据预处理" class="headerlink" title="一、数据预处理"></a>一、数据预处理</h2><ol>
+<li>将解压后的Compressed Version中的images和annotations粘贴到data中</li>
+<li>运行data_process.py。将会生成三个txt文件和一个labels文件夹</li>
+<li>把images&#x2F;test、train、val中的所有图片移动到images下</li>
+</ol>
+<ul>
+<li><p>注意！   在autodl上，SeaDronesSee.yaml中的txt路径要这样写才能找到，如果不行的话需要再调试一下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">train: ../../data/train.txt</span><br><span class="line">val: ../../data/val.txt</span><br><span class="line">test: ../../data/test.txt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>yolov8最终会读取的东西：images下的所有jpg、labels下的所有txt、SeaDronesSee.yaml、train.txt、val.txt、test.txt</p>
+<blockquote>
+<p>训练开始前所必须的目录结构（能多不能少）：</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── ./data</span><br><span class="line">│   ├── ./data/images</span><br><span class="line">│   │   ├── ./data/images/1.jpg</span><br><span class="line">│   │   ├── ./data/images/2.jpg</span><br><span class="line">│   │   ├── ./data/images/3.jpg</span><br><span class="line">│   │   ├── ...</span><br><span class="line">│   ├── ./data/labels</span><br><span class="line">│   │   ├── ./data/labels/1.txt</span><br><span class="line">│   │   ├── ./data/labels/2.txt</span><br><span class="line">│   │   ├── ./data/labels/3.txt</span><br><span class="line">│   │   ├── ...</span><br><span class="line">│   ├── ./data/SeaDronesSee.yaml</span><br><span class="line">│   ├── ./data/train.txt</span><br><span class="line">│   ├── ./data/val.txt</span><br><span class="line">│   └── ./data/test.txt</span><br><span class="line">————————————————</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="二、快速开始"><a href="#二、快速开始" class="headerlink" title="二、快速开始"></a>二、快速开始</h2><ol>
+<li>模型训练（只进行了快速试验，若换成yolov8s.pt   epochs&#x3D;100，效果会更好些）</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yolo task=detect mode=train model=yolov8n.pt data=data/SeaDronesSee.yaml batch=32 epochs=20 imgsz=640 workers=16 device=0</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>模型验证（注意！运行前请查看并替换上面train生成的文件夹名称‘runs&#x2F;detect&#x2F;train1’）</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yolo task=detect mode=val model=runs/detect/train1/weights/best.pt data=data/SeaDronesSee.yaml device=0</span><br></pre></td></tr></table></figure>
+
+<ol start="8">
+<li>模型预测（source换为需要预测的文件目录）</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yolo task=detect mode=predict model=runs/detect/train1/weights/best.pt source=data/images device=0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>所有的运行结果会保存在&#x2F;runs&#x2F;detect&#x2F;目录下</li>
+</ul>
+<h2 id="二、文件解释"><a href="#二、文件解释" class="headerlink" title="二、文件解释"></a>二、文件解释</h2><p>最终目标：实现yaml对三个txt的读取。实现labels与images的所需格式</p>
+<ol>
+<li><p>data_process.py：</p>
+<blockquote>
+<ul>
+<li>根据images中不同文件夹和图片名称，生成对应的train、val、test.txt三个文件。内容为图片路径</li>
+<li>清洗两个JSON文件中的必要性数据，并进行归一化处理（输出格式为：目标框类别 目标框中心点x轴相对于图片x轴的比例 目标框…y轴的比例 目标框宽度相对于图片宽度的比例 目标框长度…的比例）</li>
+<li>生成（图片id.txt）到labels文件夹中</li>
+</ul>
+</blockquote>
+</li>
+<li><p>SeaDronesSee.yaml：让yolo命令读取到必要信息</p>
+</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 图片名称信息路径</span></span><br><span class="line">train: ../../data/train.txt</span><br><span class="line">val: ../../data/val.txt</span><br><span class="line">test: ../../data/test.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 类别数量</span></span><br><span class="line">nc: <span class="number">6</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 类别名称</span></span><br><span class="line">names: [<span class="string">&#x27;ignored&#x27;</span>, <span class="string">&#x27;swimmer&#x27;</span>, <span class="string">&#x27;boat&#x27;</span>, <span class="string">&#x27;jetski&#x27;</span>, <span class="string">&#x27;life_saving_appliances&#x27;</span>, <span class="string">&#x27;buoy&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>注意：’ignored’标签在标注图片中没有出现</li>
+</ol>
+<h2 id="四、致谢"><a href="#四、致谢" class="headerlink" title="四、致谢"></a>四、致谢</h2><p>感谢 <a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45921929/article/details/128673338?ops_request_misc=%7B%22request_id%22:%22170037567616800192218540%22,%22scm%22:%2220140713.130102334..%22%7D&request_id=170037567616800192218540&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-128673338-null-null.142%5Ev96%5Epc_search_result_base5&utm_term=yolov8&spm=1018.2226.3001.4187">YOLOv8教程系列</a> 的方法指导</p>
+<p>感谢超级好用的GPT3.5的超级好用的回答</p>
+
+    </div>
+
+    
+    <div class="about">
+        <h1>关于本文</h1>
+        <div class="details">
+            <p>由 CGuitar 撰写, 采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc/4.0">CC BY-NC 4.0</a> 许可协议.</p>
+        </div>
+        
+    </div>
+    
+
+    <div class="container post-prev-next">
+        
+        <a href="/2024/12/28/SentimentAnalysis-HotelRatingValidity/" class="next">
+            <div>
+                <div class="text">
+                    <p class="label">下一篇</p>
+                    <h3 class="title">用BERT文本情感分析实现酒店评分有效性调整-自然语言处理期末作业</h3>
+                </div>
+            </div>
+        </a>
+        
+        
+        <a href="/2024/12/26/test01/" class="prev">
+            <div>
+                <div class="text">
+                    <p class="label">上一篇</p>
+                    <h3 class="title">Hello World2</>
+                </div>
+            </div>
+        </a>
+        
+    </div>
+
+    
+        
+        
+    
+</article>
+
+        <footer>
+    <div class="inner">
+        <div class="links">
+            
+            <div class="group">
+                <h2 class="title">Blog</h2>
+                
+                <a href="/" class="item">Blog</a>
+                
+                <a href="/archives" class="item">个人资料</a>
+                
+                <a href="/love" class="item">捏头囡囡的小屋</a>
+                
+                <a href="/search" class="item">Search</a>
+                
+                <a href="/projects" class="item">项目</a>
+                
+            </div>
+            
+            <div class="group">
+                <h2 class="title">项目</h2>
+                
+                <a target="_blank" rel="noopener" href="https://github.com/CGuitar/SentimentAnalysis-HotelRatingValidity" class="item">用BERT文本情感分析实现酒店评分有效性调整</a>
+                
+                <a target="_blank" rel="noopener" href="https://github.com/CGuitar/SeaDronesSee-dataset-on-YOLOV8" class="item">SeaDronesSee数据集在YOLOV8上的部署</a>
+                
+            </div>
+            
+            <div class="group">
+                <h2 class="title">关于我</h2>
+                
+                <a target="_blank" rel="noopener" href="https://github.com/CGuitar" class="item">GitHub</a>
+                
+                <a target="_blank" rel="noopener" href="https://blog.csdn.net/PJ212" class="item">CSDN</a>
+                
+                <a href="mailto:2326268900@qq.com" class="item">Email</a>
+                
+            </div>
+            
+        </div>
+        <span>&copy; 2024 CGuitar<br>由 <a href="http://hexo.io/" target="_blank">Hexo</a> 驱动 </span>
+        
+        
+            <br>
+            <div class="color-scheme-toggle" role="radiogroup" id="theme-color-scheme-toggle">
+                <label>
+                    <input type="radio" value="light">
+                    <span>Light</span>
+                </label>
+                <label>
+                    <input type="radio" value="dark">
+                    <span>Dark</span>
+                </label>
+                <label>
+                    <input type="radio" value="auto">
+                    <span>Auto</span>
+                </label>
+            </div>
+        
+    </div>
+</footer>
+
+
+        
+<script src="/js/main.js"></script>
+
+        
+        
+        
+
+        
+        <script src="https://unpkg.com/scrollreveal"></script>
+        <script>
+            window.addEventListener('load', () => {
+                ScrollReveal({ delay: 250, reset: true, easing: 'cubic-bezier(0, 0, 0, 1)' })
+                ScrollReveal().reveal('.post-list-item .cover-img img')
+                ScrollReveal().reveal('.post-list-item, .card, .content p img, .content .block-large img', { distance: '60px', origin: 'bottom', duration: 800 })
+            })
+        </script>
+        
+    </body>
+</html>
