@@ -361,3 +361,15 @@ main {
     background-color: #e9f3ff;
 }
 
+.logo {
+    background-color: #333;
+    font-size: 28px;
+    color: white; /* 文字颜色 */
+    border: none; /* 去掉边框 */
+    cursor: pointer; /* 鼠标悬停时显示手型 */
+    font-family: Arial, sans-serif; /* 字体 */
+    text-decoration: none; /* 去掉下划线 */
+}
+
+
+
