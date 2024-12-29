@@ -9,7 +9,7 @@
 <body>
     <!-- 头部 -->
     <header>
-        <div class="logo">技术社区</div>
+        <div class="logo" style="font-size: 28px; font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">CGuitar的技术社区模拟</div>
         <nav>
             <ul>
                 <li><a href="index.html">首页</a></li>
@@ -27,6 +27,11 @@
         <img src="images/banner.png" alt="焦点图">
     </section>
 
+    <!-- 排序栏 -->
+    <div class="sort-bar">
+        <button id="sort-by-likes">按点赞数量排序</button>
+        <button id="sort-by-date">按发布时间排序</button>
+    </div>
     <!-- 内容区域 -->
     <main>
         <section class="posts">
@@ -46,7 +51,7 @@
     <!-- 底部栏 -->
     <footer class="footer">
         <button class="footer-button" onclick="window.location.href='index.html'">主页</button>
-        <button class="footer-button" onclick="window.location.href='profile.html'">个人中心</button>
+        <button class="footer-button" onclick="window.location.href='profile.html'" style="margin-right: 20px;">个人中心</button>
     </footer>
     <script src="scripts/main.js"></script>
 </body>
